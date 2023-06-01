@@ -1,0 +1,15 @@
+[package]
+name = "soundrs"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+fst = {version = "0.4.7", features = ["levenshtein"]}
+lazy_static = "1.4.0"
+random = "0.14.0"
+rodio = "0.17.1"
+serde = { version = "1.0.163", features = ["derive"] }
+serde_json = "1.0.96"
+walkdir = "2.3.3"
