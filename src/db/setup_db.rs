@@ -26,12 +26,24 @@ pub fn search(s: &str) {
     result.iter().for_each(|x| println!("{}", x));
 }
 
-pub fn load() {
-    let file = File::open("./data/data.json").unwrap();
-    let my_map: HashMap<String, String> = serde_json::from_reader(file).unwrap();
-    let mut lib = LIBRARY.lock().unwrap();
-    lib.clear();
-    lib.extend(my_map);
+// Extensive loading should only be used when the song data was altered manually
+// It loads the library manually instead of pulling it from the saved .json file
+// Whenever the .json file fails the validate a extensive load is performed ## Todo!() ##
+pub fn load(extensive: bool) {
+    if !extensive {
+        // Loads the data from the saved .json file
+        // This should be the default load
+        // This is faster but less reliable then extensive load
+        let file = File::open("./data/data.json").unwrap();
+        let my_map: HashMap<String, String> = serde_json::from_reader(file).unwrap();
+        let mut lib = LIBRARY.lock().unwrap();
+        lib.clear();
+        lib.extend(my_map);
+    } else {
+        // Implement extensive load
+        // Loops through the song directory and adds all the keys and values to the library
+        todo!()
+    }
 }
 
 pub fn save() {
