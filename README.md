@@ -17,7 +17,7 @@ each playlist points to multiple songs which each point to a audio file
 ```
 stuct Playlist {
     name,
-    Vec<Songs>,
+    Vec<Song>,
 }
 
 struct Song {
