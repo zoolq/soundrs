@@ -11,25 +11,39 @@ use walkdir::{ WalkDir };
 
 use crate::queue::queue::Song;
 
+// The functions that interact with the LIBRARY are named without any suffixes
+// The functions that interact with any other Database are suffixed with _databasename
+// 
+// Example:
+//
+// search("test") searches LIBRARY
+//
+// search_playlists searches PLAYLISTS
+
+// Initialize the playlists as a HashMap containing two Strings
+lazy_static! {
+    static ref PLAYLISTS: Mutex<HashMap<String, String>> = {
+        let mut m = HashMap::new();
+        let file = File::open("./data/jsons/playlists.json").unwrap();
+        let my_map: HashMap<String, String> = serde_json::from_reader(file).unwrap();
+        m.extend(my_map);
+        Mutex::new(m)
+    };
+}
+
 // Initiates the library as a HashMap containing two Strings
-// This should be initiated on each startup by the load() function
-// If this is not done errors will occur
 //
 // This can be accessed by:
 // LIBRARY.lock() -> Result<MutexGuard<HashMap<String, String>>, ()>
 // This should only be done in this module and only through wrapper functions otherwise the library might break
 lazy_static! {
     static ref LIBRARY: Mutex<HashMap<String, String>> = {
-        let m = HashMap::new();
+        let mut m = HashMap::new();
+        let file = File::open("./data/jsons/data.json").unwrap();
+        let my_map: HashMap<String, String> = serde_json::from_reader(file).unwrap();
+        m.extend(my_map);
         Mutex::new(m)
     };
-}
-
-// Initiates the library
-// Should be called every time the program starts
-pub fn lib_init() {
-    load(false);
-    // Launch validation thread here
 }
 
 // The trait each struct has to implement to best interact with the database
@@ -82,25 +96,18 @@ pub fn search(query: &str) -> Vec<Song> {
 // Loads the data from the songs folder
 // This is slower then the default load but works when something has been changed manually
 // Extensive load is initiated whenever the .json file fails to validate
-pub fn load(extensive: bool) {
+pub fn load() {
     let mut lib = LIBRARY.lock().unwrap();
     lib.clear();
-    if !extensive {
-        let file = File::open("./data/data.json").unwrap();
-        let my_map: HashMap<String, String> = serde_json::from_reader(file).unwrap();
-        lib.extend(my_map);
-    } 
-    else if extensive {
-        for entry in WalkDir::new("./data/songs") {
-            let entry = entry.unwrap();
-            if !entry.file_type().is_file() {continue;}
-            let path = entry.path();
-            let extension = path.extension().unwrap().to_str().unwrap();
-            if !is_audio_file(extension) {continue;}
-            let path_name = String::from(path.file_name().unwrap().to_str().unwrap());
-            let name = &path_name[..path_name.len()-4];
-            lib.insert(name.to_string(), path.to_str().unwrap().to_string());
-        }
+    for entry in WalkDir::new("./data/songs") {
+        let entry = entry.unwrap();
+        if !entry.file_type().is_file() {continue;}
+        let path = entry.path();
+        let extension = path.extension().unwrap().to_str().unwrap();
+        if !is_audio_file(extension) {continue;}
+        let path_name = String::from(path.file_name().unwrap().to_str().unwrap());
+        let name = &path_name[..path_name.len()-4];
+        lib.insert(name.to_string(), path.to_str().unwrap().to_string());
     }
 }
 
@@ -117,8 +124,10 @@ pub fn get_entry(s: &str) -> Song {
 // The json data is located in ./data/data.json
 // Might add other save types later
 pub fn save() {
-    let hash = LIBRARY.lock().unwrap().clone();
-    File::create("./data/data.json").unwrap().write_all(serde_json::to_string(&hash).unwrap().as_bytes()).unwrap();
+    let lib = LIBRARY.lock().unwrap().clone();
+    File::create("./data/jsons/data.json").unwrap().write_all(serde_json::to_string(&lib).unwrap().as_bytes()).unwrap();
+    let playlists = PLAYLISTS.lock().unwrap().clone();
+    File::create("./data/jsons/playlists.json").unwrap().write_all(serde_json::to_string(&playlists).unwrap().as_bytes()).unwrap();
 }
 
 // The library launches a validation thread upon startup
@@ -126,7 +135,7 @@ pub fn save() {
 // This is launched in the background so that lower-end devices don't have to wait for the library to load
 pub async fn validate() -> bool {
     let mut validation = HashMap::new();
-    for entry in WalkDir::new("./data/songs") {
+    for entry in WalkDir::new("./data/jsons/songs") {
         let entry = entry.unwrap();
         if !entry.file_type().is_file() {continue;}
         let path = entry.path();
