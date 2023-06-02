@@ -6,7 +6,8 @@ On load the application initiates a couple of static, lazily loaded Mutext conta
 
 ```
 LIBRARY: HashMap<SongName, SongPointer>
-PLAYLISTS: HashMap<PlaylistName, PlaylistPointer>```
+PLAYLISTS: HashMap<PlaylistName, PlaylistPointer>
+```
 
 the LIBRARY contains pointers to all songs found in the specified song library directory and subdirectories
 the PLAYLISTS contains pointers to all playlists in the specified playlist library directory and subdirectories
