@@ -1,12 +1,10 @@
 use std::collections::HashMap;
-use std::hash::Hash;
 use std::sync::Mutex;
 use lazy_static::lazy_static;
 use serde_json::{ self };
-use std::fs::{File, DirEntry};
+use std::fs::{ File };
 use std::io::Write;
-use std::path::PathBuf;
-use walkdir::{DirEntry, WalkDir};
+use walkdir::{ WalkDir };
 
 lazy_static! {
     static ref LIBRARY: Mutex<HashMap<String, String>> = {
@@ -15,7 +13,7 @@ lazy_static! {
     };
 }
 
-pub fn library_print() {
+pub fn print_lib() {
     let lib = LIBRARY.lock().unwrap();
     println!("{:#?}", lib);
 }
@@ -53,7 +51,7 @@ pub fn load(extensive: bool) {
                     let name = &path_name[..path_name.len()-4];
                     lib.insert(name.to_string(), path.to_str().unwrap().to_string());
                 }
-            } 
+            }
         }
     }
 }
@@ -65,7 +63,7 @@ pub fn save() {
 
 fn is_audio_file(extension: &str) -> bool {
     match extension {
-        "mp3" | "wav" | "flac" | "ogg" | "aac" => true,
+        "mp3" | "wav" | "flac"  | "aac" => true,
         _ => false,
     }
 }
