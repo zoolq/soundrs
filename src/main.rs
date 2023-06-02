@@ -1,9 +1,8 @@
-use db::db::{load, print_lib};
+use queue::player::Player;
 
 pub mod db;
-pub mod player;
+pub mod queue;
+pub mod parser;
 
 fn main() {
-    load(true);
-    print_lib();
 }

@@ -63,6 +63,13 @@ pub fn load(extensive: bool) {
     }
 }
 
+pub fn get_entry(s: &str) -> (String, String){
+    let lib = LIBRARY.lock().unwrap();
+    let song = lib.get(s).unwrap().to_owned();
+    let name = s.to_owned();
+    (name, song)
+}
+
 pub fn save() {
     let hash = LIBRARY.lock().unwrap().clone();
     File::create("./data/data.json").unwrap().write_all(serde_json::to_string(&hash).unwrap().as_bytes()).unwrap();
