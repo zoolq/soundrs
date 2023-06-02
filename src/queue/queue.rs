@@ -1,5 +1,4 @@
 use std::collections::VecDeque;
-
 pub trait QueueTools {
     fn current(&mut self) -> Song;
     fn to_place(&mut self, place: usize);

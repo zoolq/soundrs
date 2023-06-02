@@ -1,6 +1,9 @@
-use rodio::{ Sink, OutputStream, Decoder };
 use std::fs::File;
 use std::io::BufReader;
+
+use rodio::{ Sink, OutputStream, Decoder };
+
+use crate::db::db::Api;
 
 use super::queue::QueueTools;
 use super::queue::Song;
@@ -9,6 +12,16 @@ use super::queue::Queue;
 pub struct Player {
     pub queue: Queue,
     pub sink: Sink,
+}
+
+impl Api for Player {
+    fn search(&self, query: &str) -> Vec<Song> {
+        crate::db::db::search(query)
+    }
+    
+    fn get_song(&self, id: &str) -> Song {
+        
+    }
 }
 
 impl QueueTools for Player {
