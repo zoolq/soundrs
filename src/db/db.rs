@@ -11,6 +11,13 @@ use walkdir::{ WalkDir };
 
 use crate::queue::queue::Song;
 
+// Initiates the library as a HashMap containing two Strings
+// This should be initiated on each startup by the load() function
+// If this is not done errors will occur
+//
+// This can be accessed by:
+// LIBRARY.lock() -> Result<MutexGuard<HashMap<String, String>>, ()>
+// This should only be done in this module and only through wrapper functions otherwise the library might break
 lazy_static! {
     static ref LIBRARY: Mutex<HashMap<String, String>> = {
         let m = HashMap::new();
@@ -28,21 +35,33 @@ pub trait Api {
     fn get_song(&self, id: &str) -> Song;
 }
 
+
+// Prints the library HashMap to the console
+// Only in dev builds
+// Should not be used for prints to the user, use search() instead
 #[cfg(debug_assertions)]
 pub fn print_lib() {
     let lib = LIBRARY.lock().unwrap();
-    println!("{:#?}", lib);
+    println!("Library:");
+    for (key, value) in lib.iter() {
+        println!("Name: {} Filepath: {}", key, value);
+    }
 }
+    
+
 
 
 // Searches the library HashMap for all entries that contain the query
-pub fn search(query: &str) -> Vec<String> {
+// Use this for retrieving any amount of entries, try to avoid functions that return all entries
+pub fn search(query: &str) -> Vec<Song> {
     let lib = LIBRARY.lock().unwrap();
-    let mut result: Vec<String> = Vec::new();
+    let mut result: Vec<Song> = Vec::new();
     for key in lib.keys().filter(|&k| k.to_lowercase().contains(query.to_lowercase().as_str())) {
-        result.push(key.clone());
+        let key = key;
+        let value = lib.get(key).unwrap();
+        result.push(Song{name: key.to_owned(), file: value.to_owned()});
     }
-    result.sort_by_key(|name| name.to_lowercase());
+    result.sort_by_key(|name| name.name.to_lowercase());
     result
 }
 
@@ -81,19 +100,25 @@ pub fn load(extensive: bool) {
     }
 }
 
-
-pub fn get_entry(s: &str) -> (String, String){
+// Gets a singe entry
+// This function should be used for retrieving a single entry
+pub fn get_entry(s: &str) -> Song {
     let lib = LIBRARY.lock().unwrap();
-    let song = lib.get(s).unwrap().to_owned();
+    let file = lib.get(s).unwrap().to_owned();
     let name = s.to_owned();
-    (name, song)
+    Song {name, file}
 }
 
+// Saves the library to a .json file
+// The json data is located in ./data/data.json
+// Might add other save types later
 pub fn save() {
     let hash = LIBRARY.lock().unwrap().clone();
     File::create("./data/data.json").unwrap().write_all(serde_json::to_string(&hash).unwrap().as_bytes()).unwrap();
 }
 
+// Used to validate wheather a file is an audio file or not
+// Currently file types like .ogg and .mp4, which are supported by rodio are not supported
 fn is_audio_file(extension: &str) -> bool {
     match extension {
         "mp3" | "wav" | "flac"  | "aac" => true,

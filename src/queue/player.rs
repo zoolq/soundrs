@@ -20,7 +20,7 @@ impl Api for Player {
     }
     
     fn get_song(&self, id: &str) -> Song {
-        
+        crate::db::db::get_entry(id)
     }
 }
 
