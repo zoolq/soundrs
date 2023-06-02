@@ -5,6 +5,7 @@ pub trait QueueTools {
     fn previous(&mut self);
     fn next(&mut self);
     fn queue(&mut self, song: Song);
+    fn clear(&mut self);
 }
 
 #[derive(Debug, Clone)]
@@ -53,5 +54,9 @@ impl QueueTools for Queue {
 
     fn queue(&mut self, song: Song) {
         self.queue.push_back(song);
+    }
+
+    fn clear(&mut self) {
+        self.queue.clear();
     }
 }

@@ -25,6 +25,13 @@ lazy_static! {
     };
 }
 
+// Initiates the library
+// Should be called every time the program starts
+pub fn lib_init() {
+    load(false);
+    // Launch validation thread here
+}
+
 // The trait each struct has to implement to best interact with the database
 // search looks for entries that contain the query and returns them as a Vec<String>
 // get_song gets a specific entry matching the id and returns it as a Song struct
@@ -48,9 +55,6 @@ pub fn print_lib() {
     }
 }
     
-
-
-
 // Searches the library HashMap for all entries that contain the query
 // Use this for retrieving any amount of entries, try to avoid functions that return all entries
 pub fn search(query: &str) -> Vec<Song> {
@@ -115,6 +119,25 @@ pub fn get_entry(s: &str) -> Song {
 pub fn save() {
     let hash = LIBRARY.lock().unwrap().clone();
     File::create("./data/data.json").unwrap().write_all(serde_json::to_string(&hash).unwrap().as_bytes()).unwrap();
+}
+
+// The library launches a validation thread upon startup
+// The validation thread validates the current library with the files found in the songs path
+// This is launched in the background so that lower-end devices don't have to wait for the library to load
+pub async fn validate() -> bool {
+    let mut validation = HashMap::new();
+    for entry in WalkDir::new("./data/songs") {
+        let entry = entry.unwrap();
+        if !entry.file_type().is_file() {continue;}
+        let path = entry.path();
+        let extension = path.extension().unwrap().to_str().unwrap();
+        if !is_audio_file(extension) {continue;}
+        let path_name = String::from(path.file_name().unwrap().to_str().unwrap());
+        let name = &path_name[..path_name.len()-4];
+        validation.insert(name.to_string(), path.to_str().unwrap().to_string());
+    }
+    let lib = LIBRARY.lock().unwrap();
+    *lib == validation
 }
 
 // Used to validate wheather a file is an audio file or not
