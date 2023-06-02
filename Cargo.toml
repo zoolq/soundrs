@@ -6,7 +6,6 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-fst = {version = "0.4.7", features = ["levenshtein"]}
 lazy_static = "1.4.0"
 random = "0.14.0"
 rodio = "0.17.1"

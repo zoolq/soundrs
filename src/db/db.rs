@@ -13,18 +13,22 @@ lazy_static! {
     };
 }
 
+#[cfg(debug_assertions)]
 pub fn print_lib() {
     let lib = LIBRARY.lock().unwrap();
     println!("{:#?}", lib);
 }
 
-pub fn search(s: &str) {
+
+// Searches the library HashMap for all entries that contain the query
+pub fn search(query: &str) -> Vec<String> {
     let lib = LIBRARY.lock().unwrap();
     let mut result: Vec<String> = Vec::new();
-    for key in lib.keys().filter(|&k| k.to_lowercase().contains(s.to_lowercase().as_str())) {
+    for key in lib.keys().filter(|&k| k.to_lowercase().contains(query.to_lowercase().as_str())) {
         result.push(key.clone());
     }
-    result.iter().for_each(|x| println!("{}", x));
+    result.sort_by_key(|name| name.to_lowercase());
+    result
 }
 
 // Extensive loading should only be used when the song data was altered manually
@@ -41,6 +45,9 @@ pub fn load(extensive: bool) {
         let my_map: HashMap<String, String> = serde_json::from_reader(file).unwrap();
         lib.extend(my_map);
     } else {
+        // Loads the data from the songs folder
+        // This is slower then the default load but works when something has been changed manually
+        // Extensive load is initiated whenever the .json file fails to validate
         for entry in WalkDir::new("./data/songs") {
             let entry = entry.unwrap();
             if entry.file_type().is_file() {

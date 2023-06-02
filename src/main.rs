@@ -1,6 +1,7 @@
-use db::setup_db::{load, print_lib};
+use db::db::{load, print_lib};
 
 pub mod db;
+pub mod player;
 
 fn main() {
     load(true);
