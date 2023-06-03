@@ -4,6 +4,7 @@ use std::sync::Mutex;
 use std::fs::File;
 use super::data_models::{Song};
 use walkdir::WalkDir;
+use std::io::Write;
 
 const LIBRARY_PATH: &str = "./data/songs/";
 const LIBRARY_FILE: &str = "./data/jsons/library.json";

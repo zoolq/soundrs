@@ -4,7 +4,8 @@ use std::io::BufReader;
 use rodio::{ Sink, OutputStream, Decoder };
 
 use crate::db::data_models::{ Song, Playlist };
-use crate::db::db::{ LibraryApi, PlaylistApi };
+use crate::db::library_functions::LibraryApi;
+use crate::db::playlists_functions::PlaylistApi;
 
 use super::queue::QueueTools;
 use super::queue::Queue;
@@ -29,17 +30,27 @@ pub struct Player {
     pub sink: Sink,
 }
 
+impl PlaylistApi for Player {
+    fn search(&self, query: &str) -> Vec<Playlist> {
+        crate::db::playlists_functions::search(query)
+    }
+
+    fn get_playlist(&self, id: &str) -> Playlist {
+        crate::db::playlists_functions::get_entry(id)
+    }
+}
+
 // The player interacts with the library here
 // This should be the only way for the program to access the library
 impl LibraryApi for Player {
     // Returns a vector containing all the Songs, whos names contain the query
     fn search(&self, query: &str) -> Vec<Song> {
-        crate::db::db::search_library(query)
+        crate::db::library_functions::search(query)
     }
     
     // Gets a single song by its full name
     fn get_song(&self, id: &str) -> Song {
-        crate::db::db::get_entry_libraray(id)
+        crate::db::library_functions::get_entry(id)
     }
 }
 

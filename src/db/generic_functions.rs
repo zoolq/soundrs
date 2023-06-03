@@ -9,7 +9,7 @@ pub(crate) fn search(query: &str, map: &HashMap<String, String>) -> Vec<(String,
         let value = map.get(key).unwrap();
         result.push((key.to_string(), value.to_string()));
     }
-    result.sort_by_key(|name| name.name.to_lowercase());
+    result.sort_by_key(|name| name.0.to_lowercase());
     result
 }
 
@@ -44,8 +44,9 @@ pub fn save() {
 // The Vector contains the boolean values in the following order:
 // [0] -> Library
 // [1] -> Playlists
-pub async fn validate() -> Vec<bool> {
+pub fn validate() -> Vec<bool> {
     let mut res = Vec::new();
-    res.push(super::library_functions::validate().await);
-    res.push(super::playlists_functions::validate().await);
+    res.push(super::library_functions::validate());
+    res.push(super::playlists_functions::validate());
+    res
 }

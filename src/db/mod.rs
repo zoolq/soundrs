@@ -1,4 +1,3 @@
-pub mod db;
 pub mod data_models;
 pub mod generic_functions;
 pub mod library_functions;

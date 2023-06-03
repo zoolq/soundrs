@@ -4,6 +4,7 @@ use std::collections::HashMap;
 use std::fs::File;
 use super::data_models::Playlist;
 use walkdir::WalkDir;
+use std::io::Write;
 
 const PLAYLISTS_PATH: &str = "./data/playlists";
 const PLAYLISTS_FILE: &str = "playlists.json";
