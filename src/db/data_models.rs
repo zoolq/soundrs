@@ -1,7 +1,4 @@
-use std::path;
-
-use super::queue::Song;
-
+#[derive(Debug)]
 pub struct Playlist {
     pub name: String,
     pub list: Vec<Song>
@@ -33,4 +30,11 @@ impl Playlist {
     pub fn remove(&mut self, index: usize) {
         self.list.remove(index);
     }
+}
+
+
+#[derive(Debug, Clone)]
+pub struct Song {
+    pub name: String,
+    pub file: String,
 }

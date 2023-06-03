@@ -1,3 +1,5 @@
+use crate::db::data_models::Song;
+
 use std::collections::VecDeque;
 pub trait QueueTools {
     fn current(&mut self) -> Song;
@@ -6,12 +8,6 @@ pub trait QueueTools {
     fn next(&mut self);
     fn queue(&mut self, song: Song);
     fn clear(&mut self);
-}
-
-#[derive(Debug, Clone)]
-pub struct Song {
-    pub name: String,
-    pub file: String,
 }
 
 #[derive(Debug, Clone)]

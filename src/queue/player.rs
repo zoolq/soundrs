@@ -3,10 +3,10 @@ use std::io::BufReader;
 
 use rodio::{ Sink, OutputStream, Decoder };
 
-use crate::db::db::Api;
+use crate::db::data_models::{ Song, Playlist };
+use crate::db::db::{ LibraryApi, PlaylistApi };
 
 use super::queue::QueueTools;
-use super::queue::Song;
 use super::queue::Queue;
 
 trait Audio {
@@ -31,15 +31,15 @@ pub struct Player {
 
 // The player interacts with the library here
 // This should be the only way for the program to access the library
-impl Api for Player {
+impl LibraryApi for Player {
     // Returns a vector containing all the Songs, whos names contain the query
     fn search(&self, query: &str) -> Vec<Song> {
-        crate::db::db::search(query)
+        crate::db::db::search_library(query)
     }
     
     // Gets a single song by its full name
     fn get_song(&self, id: &str) -> Song {
-        crate::db::db::get_entry(id)
+        crate::db::db::get_entry_libraray(id)
     }
 }
 
