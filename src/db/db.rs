@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, hash::Hash};
 use std::sync::Mutex;
 use std::fs::File;
 use std::io::Write;
@@ -19,8 +19,12 @@ use crate::queue::queue::Song;
 // search("test") searches LIBRARY
 //
 // search_playlists searches PLAYLISTS
-
+//
 // Initialize the playlists as a HashMap containing two Strings
+// 
+// Playlists can have two tags infront of them
+// Album -- Shows that the playlist is an album
+// Playlist || No Tag -- Shows that the playlist is a custom user generated playlist
 lazy_static! {
     static ref PLAYLISTS: Mutex<HashMap<String, String>> = {
         let mut m = HashMap::new();
@@ -39,7 +43,7 @@ lazy_static! {
 lazy_static! {
     static ref LIBRARY: Mutex<HashMap<String, String>> = {
         let mut m = HashMap::new();
-        let file = File::open("./data/jsons/data.json").unwrap();
+        let file = File::open("./data/jsons/library.json").unwrap();
         let my_map: HashMap<String, String> = serde_json::from_reader(file).unwrap();
         m.extend(my_map);
         Mutex::new(m)
@@ -125,7 +129,7 @@ pub fn get_entry(s: &str) -> Song {
 // Might add other save types later
 pub fn save() {
     let lib = LIBRARY.lock().unwrap().clone();
-    File::create("./data/jsons/data.json").unwrap().write_all(serde_json::to_string(&lib).unwrap().as_bytes()).unwrap();
+    File::create("./data/jsons/library.json").unwrap().write_all(serde_json::to_string(&lib).unwrap().as_bytes()).unwrap();
     let playlists = PLAYLISTS.lock().unwrap().clone();
     File::create("./data/jsons/playlists.json").unwrap().write_all(serde_json::to_string(&playlists).unwrap().as_bytes()).unwrap();
 }
@@ -133,20 +137,30 @@ pub fn save() {
 // The library launches a validation thread upon startup
 // The validation thread validates the current library with the files found in the songs path
 // This is launched in the background so that lower-end devices don't have to wait for the library to load
-pub async fn validate() -> bool {
-    let mut validation = HashMap::new();
-    for entry in WalkDir::new("./data/jsons/songs") {
-        let entry = entry.unwrap();
-        if !entry.file_type().is_file() {continue;}
-        let path = entry.path();
-        let extension = path.extension().unwrap().to_str().unwrap();
-        if !is_audio_file(extension) {continue;}
-        let path_name = String::from(path.file_name().unwrap().to_str().unwrap());
-        let name = &path_name[..path_name.len()-4];
-        validation.insert(name.to_string(), path.to_str().unwrap().to_string());
+// The Vector contains the boolean values in the following order:
+// [0] -> Library
+// [1] -> Playlists
+pub async fn validate() -> Vec<bool> {
+    let mut map= HashMap::new();
+    let mut result = Vec::new();
+    // Insert any newly created databases here to validate them properly
+    map.insert("./data/songs".to_string(),LIBRARY.lock().unwrap().clone());
+    map.insert("./data/playlists".to_string(), PLAYLISTS.lock().unwrap().clone());
+    for (k, v) in map {
+        let mut validation = HashMap::new();
+        for entry in WalkDir::new(k) {
+            let entry = entry.unwrap();
+            if !entry.file_type().is_file() {continue;}
+            let path = entry.path();
+            let extension = path.extension().unwrap().to_str().unwrap();
+            if !is_audio_file(extension) {continue;}
+            let path_name = String::from(path.file_name().unwrap().to_str().unwrap());
+            let name = &path_name[..path_name.len()-4];
+            validation.insert(name.to_string(), path.to_str().unwrap().to_string());
+        }
+        result.push(v == validation);
     }
-    let lib = LIBRARY.lock().unwrap();
-    *lib == validation
+    result
 }
 
 // Used to validate wheather a file is an audio file or not
